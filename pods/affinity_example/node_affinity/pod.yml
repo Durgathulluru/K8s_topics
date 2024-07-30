@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: affinitypod
+spec:
+ affinity:
+  nodeAffinity:
+   requiredDuringSchedulingIgnoredDuringExecution:
+     nodeSelectorTerms:
+      - matchExpressions:   
+         - key: disktype 
+           values: 
+             - flash
+           operator: In 
+   preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      preference:
+        matchExpressions:
+          - key: network
+            values: 
+              - fast
+            operator: In                
+ containers: 
+   - name: nginxcontainer
+     image: nginx
+     ports: 
+       - containerPort: 8080
+
+ 

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata: 
+    name: tollerationpod
+spec:
+  containers:
+     - name: nginx
+       image: nginx
+       ports:
+        - containerPort: 8080
+  tolerations:
+       - key: type
+         #operator: Equal
+         value: cpu
+         #effect: NoSchedule

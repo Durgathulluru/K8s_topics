@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: with-initcontainers
+spec:
+  #template:
+  #   labels:
+  #     app: nginx
+  # nginx container
+  containers:
+      - name: containernginx
+        image: nginx:latest
+        command: ["sh", "-c", "cp /workdir/ ."]
+        volumeMounts:
+          - name: workdir
+            mountPath: /workdir
+  # init containers
+  initContainers:
+      - name: initcontainer
+        image: busybox:1.28
+        command: ["sh", "-c", "touch  /workdir/myfile.txt"] 
+        volumeMounts:
+            - name: workdir
+              mountPath: /workdir
+  volumes:
+  - name: workdir
+    emptyDir: {}
+

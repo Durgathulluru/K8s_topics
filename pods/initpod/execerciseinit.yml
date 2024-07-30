@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: with-initcontainers
+spec:
+  containers:
+      - name: nginx
+        image: nginx
+       # command: ["sh", "-c", "cat /workdir/myfile.txt"]
+        volumeMounts:
+          - name: workdir
+            mountPath: /workdir
+  # init containers
+  initContainers:
+      - name: initcontainer
+        image: alpine
+        command: ["sh", "-c", "sleep 10; mkdir -p workdir && echo 'this is sai' > /workdir/myfile.txt"]
+        volumeMounts:
+          - name: workdir
+            mountPath: /workdir
+  volumes:
+  - name: workdir
+    emptyDir: {}
+

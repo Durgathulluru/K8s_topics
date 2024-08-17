@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cart
+  name: cart
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ing1
+  template:
+    metadata:
+      labels:
+        app: ing1
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: orders
+  name: orders
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ing3
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: ing3
+    spec:
+      containers:
+      - env:
+        - name: TOMCAT_PASSWORD
+          value: rootroot
+        image: bitnami/tomcat
+        name: tomcat
+        ports:
+        - containerPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: accounts
+  name: accounts
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ing2
+  template:
+    metadata:
+      labels:
+        app: ing2
+    spec:
+      containers:
+      - image: httpd
+        name: httpd
+        ports:
+        - containerPort: 80

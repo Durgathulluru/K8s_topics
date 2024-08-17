@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: 
+ name: ingress-demo
+ annotations:
+  kubernetes.io/ingress.class: "nginx"
+  nginx.ingress.kubernetes.io/rewrite-target: /
+spec: 
+ rules:
+ - http:
+    paths: 
+    - path: /cart
+      pathType: Prefix
+      backend: 
+       service:
+        name: cart
+        port: 
+          number: 80
+    - path: /account
+      pathType: Prefix
+      backend: 
+       service:
+        name: accounts 
+        port: 
+          number: 80
+    - path: /orders
+      pathType: Prefix
+      backend: 
+       service:
+        name: orders
+        port: 
+          number: 80

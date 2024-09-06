@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: mysql
+  name: mysql
+  namespace: alpha
+spec:
+  containers:
+  - env:
+    - name: MYSQL_ROOT_PASSWORD
+      value: paswrd
+    image: mysql:5.6
+    imagePullPolicy: IfNotPresent
+    name: mysql
+    ports:
+    - containerPort: 3306
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+  namespace: alpha
+spec:
+    ports:
+    - port: 3306 
+      targetPort: 3306
+    selector:
+      name: mysql
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: webapp-mysql
+  name: webapp-mysql
+  namespace: alpha
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: webapp-mysql
+  template:
+    metadata:
+      labels:
+        name: webapp-mysql
+      name: webapp-mysql
+    spec:
+      containers:
+      - env:
+        - name: DB_Host
+          value: mysql-service
+        - name: DB_User
+          value: root
+        - name: DB_Password
+          value: paswrd
+        image: mmumshad/simple-webapp-mysql
+        imagePullPolicy: Always
+        name: webapp-mysql
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  namespace: alpha
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30081
+  selector:
+    name: webapp-mysql
+  type: NodePort

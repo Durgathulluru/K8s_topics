@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata: 
+   name: wp-pv
+   namespace: project1
+   labels:
+    app: wordpress
+spec:
+ capacity:
+    storage: 10Gi
+ accessModes:
+       - ReadWriteMany
+ hostPath:
+   path: "/mnt/wordpress"
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+   name: wp-pvc-claim
+   namespace: project1
+   labels:
+      app: wordpress
+spec:
+   accessModes:
+        - ReadWriteMany
+   resources:
+       requests:
+         storage: 6Gi
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wp-config
+  namespace: project1
+data: 
+   WORDPRESS_DB_HOST: wordpress-service
+   WORDPRESS_DB_USER: wordpress_user
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: wp-svc
+  namespace: project1
+  labels: 
+     app: wordpress
+spec:
+   ports:
+      - port: 80
+        targetPort: 80
+        nodePort: 30081
+   selector:
+       app: wordpress
+       tier: frontend
+   type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: wordpress
+  namespace: project1
+  labels:
+    app: wordpress
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: wordpress
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: frontend
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - wordpress
+            topologyKey: "kubernetes.io/hostname"
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mysql
+            topologyKey: "kubernetes.io/hostname"
+      volumes:
+        - name: wordpress-pv
+          persistentVolumeClaim: 
+            claimName: wp-pvc-claim
+      containers:
+        - name: wordpress
+          image: wordpress:6.2.1-apache
+          envFrom:
+            - configMapRef:
+                name: wp-config
+          env:
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-pass
+                  key: password
+          ports:
+            - containerPort: 80
+          volumeMounts: 
+            - name: wordpress-pv
+              mountPath: "/var/www/html"
